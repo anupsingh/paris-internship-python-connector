@@ -2,8 +2,8 @@
 
 Your workstation must have the following elements installed:
 
-- Java Development Kit 8 - JDK 8 - in its latest version.
-- Maven 3
+- Java Development Kit 8 - [JDK 8 - in its latest version](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
+- [Maven 3](https://maven.apache.org/download.cgi)
 - Python 3
 - [pipenv](https://pipenv.readthedocs.io/en/latest/#install-pipenv-today)
 
