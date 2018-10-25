@@ -1,0 +1,1 @@
+SELECT NON EMPTY { [Measures].[Average score per game] } ON COLUMNS, NON EMPTY Crossjoin( [Games].[Games].[Team1Name].Members, Hierarchize( DrilldownLevel( [Scores].[Team2Score].[ALL].[AllMember] ) ) ) ON ROWS FROM [NanoPivotCube] CELL PROPERTIES VALUE, FORMATTED_VALUE, BACK_COLOR, FORE_COLOR, FONT_FLAGS

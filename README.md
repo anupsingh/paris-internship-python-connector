@@ -31,3 +31,4 @@ To start the connector:
 
 - To have access to the venv's shell: `pipenv shell` (and then `deactivate` to go out of it)
 - To have access to a python shell: `pipenv run python`
+- To run the script _call.py_: `pipenv run call`
