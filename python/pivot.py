@@ -38,17 +38,20 @@ class Connector:
         if self.username == None or self.password == None:
             raise Exception('You must be connected')
 
-    def mdx(self, mdx_request):
+    def request(self, url, body):
         self.check_if_connected()
-        endpoint = self.url('pivot/rest/v4/cube/query/mdx')
-        body = json.dumps({
-            "mdx": mdx_request
-        }).encode('utf-8')
+        endpoint = self.url(url)
+        body = json.dumps(body).encode('utf-8')
         response = rq.post(endpoint, headers={
             "Authorization": f'Basic {self.authorization}',
             "Content-Type": "application/json"
         }, data=body)
-        response = json.loads(response.text)
+        return json.loads(response.text)
+
+    def mdx(self, mdx_request):
+        response = self.request('pivot/rest/v4/cube/query/mdx', {
+            "mdx": mdx_request
+        })
         if response.get('status') == 'error':
             error = ''
             for err in response.get('error').get('errorChain'):
