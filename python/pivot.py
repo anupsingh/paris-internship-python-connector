@@ -1,9 +1,9 @@
-# import pandas as pd
 import requests as rq
 from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
+from utils import convert_dict_to_mdx
 
 class Connector:
     endpoint = None
@@ -57,5 +57,5 @@ class Connector:
             for err in response.get('error').get('errorChain'):
                 error += err.get('message') + '\n'
             raise Exception(error)
-        return response
+        return convert_dict_to_mdx(response)
         
