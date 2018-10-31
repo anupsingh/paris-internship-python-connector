@@ -68,9 +68,12 @@ class Query:
         self.endpoint = endpoint
         self.body = body
         self.headers = headers
-        if method.lower() == 'post':
-            self.post()
+        self.refresh()
 
+    def refresh(self):
+        if self.method.lower() == 'post':
+            self.post()
+    
     def post(self):
         self.response = rq.post(self.endpoint, headers=self.headers, data=self.body)
         self.response_json = json.loads(self.response.text)
@@ -93,5 +96,6 @@ class Query:
         return self.dataframe
 
     
-
+def refreshed(query):
+    return Query(query.method, query.endpoint, body=query.body, headers=query.headers)
     

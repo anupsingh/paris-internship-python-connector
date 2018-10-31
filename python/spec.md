@@ -28,8 +28,9 @@ df2 = query2.to_data_frame()
 Shall it refresh internally or produce a new object, allowing the user to compare the two results together
 
 ```python
-query1Updated = query1.refresh()
-query1.refresh_in_place()
+from pivot import refreshed
+query1Updated = refreshed(query1) # Copy
+query1.refresh() # In place
 ```
 
 ## Server-side simulation within a branch
