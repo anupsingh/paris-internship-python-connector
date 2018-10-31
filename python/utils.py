@@ -6,7 +6,7 @@ def parse_key(key):
         return "Total"
     return key
 
-def convert_dict_to_mdx(dictionary):
+def convert_mdx_to_dataframe(dictionary):
     cols = dictionary.get("data").get("axes")[0].get("positions")
     nb_cols = len(cols)
 
@@ -28,7 +28,7 @@ def convert_dict_to_mdx(dictionary):
 
     return pd.DataFrame(data=datastore)
 
-# def convert_dict_to_mdx(dictionary):
+# def convert_mdx_to_dataframe(dictionary):
 #     nb_cols = len(dictionary.get("data").get("axes")[0].get("positions"))
 #     datastore = {}
 #     rows = [

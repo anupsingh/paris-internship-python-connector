@@ -4,9 +4,10 @@ ACTIVEPIVOT_ENDPOINT = "http://localhost:9090/"
 
 connector = Connector(ACTIVEPIVOT_ENDPOINT, "admin", "admin")
 
-df1 = None
+mdx_request = ''
 
 with open('example.mdx') as mdx:
-    query = connector.mdx(mdx.read())
-    df1 = query.to_data_frame()
+    mdx_request = mdx.read()
 
+query = connector.mdx(mdx_request)
+print(query.dataframe)

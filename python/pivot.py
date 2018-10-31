@@ -3,7 +3,7 @@ from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
-from utils import convert_dict_to_mdx
+from utils import convert_mdx_to_dataframe
 
 class Connector:
     endpoint = None
@@ -42,60 +42,38 @@ class Connector:
         self.check_if_connected()
         endpoint = self.url(url)
         body = json.dumps(body).encode('utf-8')
-        response = Query("post", endpoint, headers={
+        return json.loads(rq.post(endpoint, headers={
             "Authorization": f'Basic {self.authorization}',
             "Content-Type": "application/json"
-        }, body=body)
-        return response
+        }, data=body).text)
 
     def mdx(self, mdx_request):
-        return self.request('pivot/rest/v4/cube/query/mdx', {
-            "mdx": mdx_request
-        })
+        def refresh():
+            response = self.request('pivot/rest/v4/cube/query/mdx', {
+                "mdx": mdx_request
+            })
+            if response.get('status') == 'error':
+                error = ''
+                for err in response.get('error').get('errorChain'):
+                    error += err.get('message') + '\n'
+                raise Exception(error)
+            
+            return convert_mdx_to_dataframe(response)
+        return Query(refresh)
         
 
 class Query:
     method = None
-    endpoint = None
-    body = None
-    headers = None
-    response = None
-    response_json = None
     dataframe = None
 
-    def __init__(self, method, endpoint, body=None, headers=None):
+    def __init__(self, method):
         self.method = method
-        self.endpoint = endpoint
-        self.body = body
-        self.headers = headers
         self.refresh()
 
     def refresh(self):
-        if self.method.lower() == 'post':
-            self.post()
+        self.dataframe = self.method()
     
-    def post(self):
-        self.response = rq.post(self.endpoint, headers=self.headers, data=self.body)
-        self.response_json = json.loads(self.response.text)
-
-    def to_data_frame(self, compute=False):
-        if self.response_json == None:
-            raise Exception("Must perform request first")
-
-        if self.dataframe != None and not(compute):
-            return self.dataframe
-        
-        # Error handling
-        if self.response_json.get('status') == 'error':
-            error = ''
-            for err in self.response_json.get('error').get('errorChain'):
-                error += err.get('message') + '\n'
-            raise Exception(error)
-        
-        self.dataframe = convert_dict_to_mdx(self.response_json)
-        return self.dataframe
-
     
 def refreshed(query):
-    return Query(query.method, query.endpoint, body=query.body, headers=query.headers)
+    return Query(query.method)
     
