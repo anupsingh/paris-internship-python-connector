@@ -11,7 +11,7 @@ connector = Connector(ACTIVEPIVOT_ENDPOINT, "admin", "admin")
 ## Data frame from a MDX query
 
 ```python
-query1 = connecter.query("SELECT ... FROM [Cube]")
+query1 = connecter.mdx_query("SELECT ... FROM [Cube]")
 df1 = query1.to_data_frame()
 best_teams = df1.loc[df['Total'] > 10, 'TeamName1']
 ```
