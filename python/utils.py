@@ -28,6 +28,28 @@ def convert_mdx_to_dataframe(dictionary):
 
     return pd.DataFrame(data=datastore)
 
+def convert_store_to_dataframe(headers, rows):
+    datastore = [
+        { header:element for (header, element) in zip(headers, row) }
+        for row in rows
+    ]
+    return pd.DataFrame(data=datastore)
+
+def detect_error(response):
+    if response['status'] == 'error':
+        error = ''
+        for err in response['error']['errorChain']:
+            error += err['message'] + '\n'
+        raise Exception(error)
+
+def parse_type(element):
+    if element == 'int':
+        return int
+    if element == 'String':
+        return str
+
+def parse_headers(headers):
+    return { header["name"]: parse_type(header["type"]) for header in headers }
 # def convert_mdx_to_dataframe(dictionary):
 #     nb_cols = len(dictionary.get("data").get("axes")[0].get("positions"))
 #     datastore = {}

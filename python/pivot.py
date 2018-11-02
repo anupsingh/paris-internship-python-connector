@@ -3,7 +3,7 @@ from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
-from utils import convert_mdx_to_dataframe
+from utils import convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe
 
 class Connector:
     endpoint = None
@@ -38,7 +38,14 @@ class Connector:
         if self.username == None or self.password == None:
             raise Exception('You must be connected')
 
-    def request(self, url, body):
+    def get(self, url):
+        self.check_if_connected()
+        endpoint = self.url(url)
+        return json.loads(rq.get(endpoint, headers={
+            "Authorization": f'Basic {self.authorization}',
+        }).text)
+
+    def post(self, url, body):
         self.check_if_connected()
         endpoint = self.url(url)
         body = json.dumps(body).encode('utf-8')
@@ -47,19 +54,47 @@ class Connector:
             "Content-Type": "application/json"
         }, data=body).text)
 
-    def mdx(self, mdx_request):
+    def mdx_query(self, mdx_request):
         def refresh():
-            response = self.request('pivot/rest/v4/cube/query/mdx', {
+            response = self.post('pivot/rest/v4/cube/query/mdx', {
                 "mdx": mdx_request
             })
-            if response.get('status') == 'error':
-                error = ''
-                for err in response.get('error').get('errorChain'):
-                    error += err.get('message') + '\n'
-                raise Exception(error)
+            detect_error(response)
             
             return convert_mdx_to_dataframe(response)
         return Query(refresh)
+
+    def store_fields(self, store):
+        response = self.get(f'pivot/rest/v4/datastore/data/stores/{store}')
+        detect_error(response)
+        return parse_headers(response["data"]["headers"])
+
+    def store_query(self, store, fields, branch="master", conditions=None, epoch=1, timeout=30000):
+        def refresh():
+            cond = conditions
+            base = "pivot/rest/v4/datastore"
+            body = {
+                "fields": fields,
+                "epoch": epoch,
+                "branch": branch,
+                "timeout": timeout
+            }
+            if cond:
+                if type(cond) == str:
+                    cond = json.loads(cond)
+                body["conditions"] = cond
+            
+            response = self.post(f'{base}/data/stores/{store}?query', body)
+            detect_error(response)
+            headers = parse_headers(response["data"]["headers"])
+            rows = response["data"]["rows"]
+            while response["data"]["pagination"].get("nextPageUrl"):
+                response = self.post(f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query', body)
+                detect_error(response)
+                rows.extend(response["data"]["rows"])
+            return convert_store_to_dataframe(headers, rows)
+        return Query(refresh)
+
         
 
 class Query:
