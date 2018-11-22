@@ -6,6 +6,34 @@ def parse_key(key):
         return "Total"
     return key
 
+def get_cubes_from_discovery(dictionary):
+    cubes = {}
+    for cube in dictionary["data"]["catalogs"][0]["cubes"]:
+            raw_name = cube["name"]
+            display_name = cube["caption"]
+            measures = list_to_dict(cube["measures"])
+            dimensions = {}
+            for dimension in cube["dimensions"]:
+                formatted_dimension = { "name": dimension["caption"] }
+                
+                hierarchies = {}
+                for hierarchy in dimension["hierarchies"]:
+                    formatted_hierarchy = {
+                        "name": hierarchy["caption"],
+                        "levels": list_to_dict(hierarchy["levels"])
+                    }
+                    hierarchies[hierarchy["name"]] = formatted_hierarchy
+                formatted_dimension["hierarchies"] = hierarchies
+                formatted_dimension["default_hierarchy"] = formatted_dimension["hierarchies"][dimension["defaultHierarchy"]]
+                
+                dimensions[dimension["name"]] = formatted_dimension
+            cubes[raw_name] = {
+                "name": display_name,
+                "measures": measures,
+                "dimensions": dimensions
+            }
+    return cubes
+
 def convert_mdx_to_dataframe(dictionary):
     cols = dictionary.get("data").get("axes")[0].get("positions")
     nb_cols = len(cols)

@@ -3,7 +3,7 @@ from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
-from utils import convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict
+from utils import get_cubes_from_discovery, convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict
 
 class Connector:
     # ==== Definition ====
@@ -67,33 +67,8 @@ class Connector:
         response = self.get("pivot/rest/v4/cube/discovery")
         detect_error(response)
 
-        cubes = {}
-        for cube in response["data"]["catalogs"][0]["cubes"]:
-            raw_name = cube["name"]
-            display_name = cube["caption"]
-            measures = list_to_dict(cube["measures"])
-            dimensions = {}
-            for dimension in cube["dimensions"]:
-                formatted_dimension = { "name": dimension["caption"] }
+        self.cubes = get_cubes_from_discovery(response)
                 
-                hierarchies = {}
-                for hierarchy in dimension["hierarchies"]:
-                    formatted_hierarchy = {
-                        "name": hierarchy["caption"],
-                        "levels": list_to_dict(hierarchy["levels"])
-                    }
-                    hierarchies[hierarchy["name"]] = formatted_hierarchy
-                formatted_dimension["hierarchies"] = hierarchies
-                formatted_dimension["default_hierarchy"] = formatted_dimension["hierarchies"][dimension["defaultHierarchy"]]
-                
-                dimensions[dimension["name"]] = formatted_dimension
-            cubes[raw_name] = {
-                "name": display_name,
-                "measures": measures,
-                "dimensions": dimensions
-            }
-        self.cubes = cubes
-
     def mdx_query(self, mdx_request):
         def refresh():
             response = self.post('pivot/rest/v4/cube/query/mdx', {
