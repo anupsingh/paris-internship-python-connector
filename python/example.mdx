@@ -1,92 +1,19 @@
 SELECT
-  NON EMPTY Hierarchize(
-    DrilldownLevel(
-      [Scores].[Team1Score].[ALL].[AllMember]
-    )
-  ) ON COLUMNS,
+  NON EMPTY {
+    [Measures].[Total scores],
+    [Measures].[contributors.COUNT],
+    [Measures].[Average score per game]
+  } ON COLUMNS,
   NON EMPTY Hierarchize(
     Union(
       [Games].[Games].[Team1Name].Members,
       Descendants(
         {
-          [Games].[Games].[ALL].[AllMember].[Australia]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Belgium]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[France]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Denmark]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Brazil]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
           [Games].[Games].[ALL].[AllMember].[Argentina]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Colombia]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Egypt]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Uruguay]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Tunisia]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Morocco]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Mexico]
-        },
-        [Games].[Games].[Team2Name]
-      ),
-      Descendants(
-        {
-          [Games].[Games].[ALL].[AllMember].[Japan]
         },
         [Games].[Games].[Team2Name]
       )
     )
   ) ON ROWS
   FROM [NanoPivotCube]
-  WHERE [Measures].[Total scores]
   CELL PROPERTIES VALUE, FORMATTED_VALUE, BACK_COLOR, FORE_COLOR, FONT_FLAGS
