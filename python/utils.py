@@ -50,6 +50,10 @@ def parse_type(element):
 
 def parse_headers(headers):
     return { header["name"]: parse_type(header["type"]) for header in headers }
+
+
+def list_to_dict(l):
+    return { element["name"]:element["caption"] for element in l }
 # def convert_mdx_to_dataframe(dictionary):
 #     nb_cols = len(dictionary.get("data").get("axes")[0].get("positions"))
 #     datastore = {}
