@@ -1,11 +1,6 @@
 import pandas as pd
 
 
-def parse_key(key):
-    if key == 0:
-        return "Total"
-    return key
-
 def get_cubes_from_discovery(dictionary):
     cubes = {}
     for cube in dictionary["data"]["catalogs"][0]["cubes"]:
@@ -20,7 +15,7 @@ def get_cubes_from_discovery(dictionary):
                 for hierarchy in dimension["hierarchies"]:
                     formatted_hierarchy = {
                         "name": hierarchy["caption"],
-                        "levels": list_to_dict(hierarchy["levels"])
+                        "levels": [level["name"] for level in hierarchy["levels"]]
                     }
                     hierarchies[hierarchy["name"]] = formatted_hierarchy
                 formatted_dimension["hierarchies"] = hierarchies
@@ -34,27 +29,24 @@ def get_cubes_from_discovery(dictionary):
             }
     return cubes
 
-def convert_mdx_to_dataframe(dictionary):
-    cols = dictionary.get("data").get("axes")[0].get("positions")
-    nb_cols = len(cols)
+def header_to_empty_dict(headers, cube):
+    return [{} for header in headers]
 
-    datastore = {}
+def convert_mdx_to_dataframe(dictionary, cubes):
+    cube = cubes[dictionary["data"]["cube"]]
+    print(cube)
 
-    rows = [
-        " | ".join(position[0].get("namePath")[1:])
-        for position in dictionary.get("data").get("axes")[1].get("positions")
-    ]
-    nb_rows = len(rows)
+    nb_rows = len(dictionary["data"]["axes"][0]["positions"])
+    nb_cols = len(dictionary["data"]["axes"][1]["positions"])
 
-    for (index, col) in enumerate(cols):
-        datastore[parse_key(index)] = { rows[index]:float('nan') for index in range(nb_rows) }
-    
-    for cell in dictionary.get("data").get("cells"):
-        datastoreId = rows[cell.get("ordinal") // nb_cols]
-        col = cell.get("ordinal") % nb_cols
-        datastore[parse_key(col)][datastoreId] = cell.get("value")
+    cells = [[ float('nan') for i in range(nb_cols)] for j in range(nb_rows)]
 
-    return pd.DataFrame(data=datastore)
+    for cell in dictionary["data"]["cells"]:
+        row = cell["ordinal"] // nb_cols
+        col = cell["ordinal"] % nb_cols
+        cells[row][col] = cell["value"]
+
+    return pd.DataFrame(data=cells)
 
 def convert_store_to_dataframe(headers, rows):
     datastore = [
@@ -82,21 +74,5 @@ def parse_headers(headers):
 
 def list_to_dict(l):
     return { element["name"]:element["caption"] for element in l }
-# def convert_mdx_to_dataframe(dictionary):
-#     nb_cols = len(dictionary.get("data").get("axes")[0].get("positions"))
-#     datastore = {}
-#     rows = [
-#         " | ".join(position[0].get("namePath")[1:])
-#         for position in dictionary.get("data").get("axes")[1].get("positions")
-#     ]
-#     nb_rows = len(rows)
-#     for row in rows:
-#         datastore[row] = [float('nan')] * nb_cols
-    
-#     for cell in dictionary.get("data").get("cells"):
-#         datastoreId = rows[cell.get("ordinal") // nb_cols]
-#         col = cell.get("ordinal") % nb_cols
-#         datastore[datastoreId][col] = cell.get("value")
 
-#     return pd.DataFrame(data=datastore)
 
