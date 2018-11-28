@@ -29,8 +29,8 @@ def get_cubes_from_discovery(dictionary):
             }
     return cubes
 
-def header_to_empty_dict(headers, cube):
-    return [{} for header in headers]
+def header_to_empty_dict(axe, cube):
+    return [{"Team1Score": "ALL"} for header in axe["positions"]]
 
 def convert_mdx_to_dataframe(dictionary, cubes):
     cube = cubes[dictionary["data"]["cube"]]
