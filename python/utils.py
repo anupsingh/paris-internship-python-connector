@@ -1,4 +1,5 @@
 import pandas as pd
+from math import isnan
 
 
 def get_cubes_from_discovery(dictionary):
@@ -35,7 +36,7 @@ def find_length_positions(positions):
         if position[-1] == initial_position[-1]:
             return index + 1
 
-def header_to_empty_dict(headers, cube):
+def get_prefilled_rows_from_headers(headers, cube):
     res = []
     aggregation_field = "All"
     for position in headers["positions"]:
@@ -46,14 +47,25 @@ def header_to_empty_dict(headers, cube):
             else:
                 res_element[hierarchy["hierarchy"]] = position[index]["namePath"][1]
         res.append(res_element)
-    print(res)
     return res
+
+def inject_values_to_rows(cells, headers, loop_length, rows_from_headers):
+    rows = []
+    for row in cells:
+        for index in range(len(row) // loop_length):
+            if not isnan(row[index * loop_length]):
+                res = rows_from_headers[index].copy()
+                for counter in range(loop_length):
+                    i = index * loop_length + counter
+                    res[headers[i][-1]["namePath"][0]] = row[i]
+                rows.append(res)
+    return rows
 
 def convert_mdx_to_dataframe(dictionary, cubes):
     cube = cubes[dictionary["data"]["cube"]]
 
-    nb_rows = len(dictionary["data"]["axes"][0]["positions"])
-    nb_cols = len(dictionary["data"]["axes"][1]["positions"])
+    nb_rows = len(dictionary["data"]["axes"][1]["positions"])
+    nb_cols = len(dictionary["data"]["axes"][0]["positions"])
 
     cells = [[ float('nan') for i in range(nb_cols)] for j in range(nb_rows)]
 
@@ -62,14 +74,16 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     number_of_useful_headers = find_length_positions(positions)
     headers["positions"] = positions[::number_of_useful_headers]
 
-    rows_from_headers = header_to_empty_dict(headers, cube)
+    rows_from_headers = get_prefilled_rows_from_headers(headers, cube)
 
     for cell in dictionary["data"]["cells"]:
         row = cell["ordinal"] // nb_cols
         col = cell["ordinal"] % nb_cols
         cells[row][col] = cell["value"]
 
-    return pd.DataFrame(data=cells)
+    rows = inject_values_to_rows(cells, positions, number_of_useful_headers, rows_from_headers)
+
+    return pd.DataFrame(data=rows)
 
 def convert_store_to_dataframe(headers, rows):
     datastore = [
