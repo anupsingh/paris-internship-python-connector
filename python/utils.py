@@ -32,14 +32,26 @@ def get_cubes_from_discovery(dictionary):
 def header_to_empty_dict(axe, cube):
     return [{"Team1Score": "ALL"} for header in axe["positions"]]
 
+def find_length_positions(positions):
+    initial_position = positions[0]
+    for (index, position) in enumerate(positions[1:]):
+        if position[-1] == initial_position[-1]:
+            return index + 1
+
 def convert_mdx_to_dataframe(dictionary, cubes):
     cube = cubes[dictionary["data"]["cube"]]
-    print(cube)
 
     nb_rows = len(dictionary["data"]["axes"][0]["positions"])
     nb_cols = len(dictionary["data"]["axes"][1]["positions"])
 
     cells = [[ float('nan') for i in range(nb_cols)] for j in range(nb_rows)]
+
+    headers = dictionary["data"]["axes"][0]
+    positions = headers["positions"]
+    number_of_useful_headers = find_length_positions(positions)
+    headers["positions"] = positions[::number_of_useful_headers]
+
+    rows_from_headers = header_to_empty_dict(headers, cube)
 
     for cell in dictionary["data"]["cells"]:
         row = cell["ordinal"] // nb_cols

@@ -68,7 +68,7 @@ class Connector:
         detect_error(response)
 
         self.cubes = get_cubes_from_discovery(response)
-        print(self.cubes)
+        # print(self.cubes)
 
     def mdx_query(self, mdx_request):
         def refresh():

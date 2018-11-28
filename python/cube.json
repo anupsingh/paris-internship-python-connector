@@ -1,0 +1,32 @@
+{
+  "name": "NanoPivotCube",
+  "measures": {
+    "Total scores(1)": "Total scores(1)",
+    "Total scores": "Total scores",
+    "Team2Score": "Team2Score",
+    "Team1Score": "Team1Score",
+    "Average score per game": "Average score per game",
+    "contributors.COUNT": "contributors.COUNT",
+    "update.TIMESTAMP": "update.TIMESTAMP"
+  },
+  "dimensions": {
+    "Games": {
+      "name": "Games",
+      "hierarchies": { "Games": { "name": "Games", "levels": ["ALL", "Team1Name", "Team2Name"] } },
+      "default_hierarchy": { "name": "Games", "levels": ["ALL", "Team1Name", "Team2Name"] }
+    },
+    "Scores": {
+      "name": "Scores",
+      "hierarchies": {
+        "Team1Score": { "name": "Team1Score", "levels": ["ALL", "Team1Score"] },
+        "Team2Score": { "name": "Team2Score", "levels": ["ALL", "Team2Score"] }
+      },
+      "default_hierarchy": { "name": "Team1Score", "levels": ["ALL", "Team1Score"] }
+    },
+    "Date Time": {
+      "name": "Date Time",
+      "hierarchies": { "Date Time": { "name": "Date Time", "levels": ["ALL", "GameDate", "GameTime"] } },
+      "default_hierarchy": { "name": "Date Time", "levels": ["ALL", "GameDate", "GameTime"] }
+    }
+  }
+}
