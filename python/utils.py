@@ -40,11 +40,11 @@ def header_to_empty_dict(headers, cube):
     aggregation_field = "All"
     for position in headers["positions"]:
         res_element = {}
-        for hierarchy in headers["hierarchies"][:-1]:
-            if len(position[0]["namepath"]) == 1:
+        for index, hierarchy in enumerate(headers["hierarchies"][:-1]):
+            if len(position[index]["namePath"]) == 1:
                 res_element[hierarchy["hierarchy"]] = aggregation_field
             else:
-                res_element[hierarchy["hierarchy"]] = position[0]["namepath"][1]
+                res_element[hierarchy["hierarchy"]] = position[index]["namePath"][1]
         res.append(res_element)
     print(res)
     return res
