@@ -1,11 +1,6 @@
 SELECT
-  NON EMPTY Hierarchize(
-    DrilldownLevel(
-      [Scores].[Team1Score].[ALL].[AllMember]
-    )
-  ) ON COLUMNS,
-  NON EMPTY Hierarchize(
-    Crossjoin(
+  NON EMPTY Crossjoin(
+    Hierarchize(
       Union(
         [Games].[Games].[Team1Name].Members,
         Descendants(
@@ -58,14 +53,63 @@ SELECT
         ),
         Descendants(
           {
-            [Games].[Games].[ALL].[AllMember].[Germany]
+            [Games].[Games].[ALL].[AllMember].[Uruguay]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Tunisia]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Morocco]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Mexico]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Japan]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Russia]
+          },
+          [Games].[Games].[Team2Name]
+        ),
+        Descendants(
+          {
+            [Games].[Games].[ALL].[AllMember].[Portugal]
           },
           [Games].[Games].[Team2Name]
         )
-      ),
-      [Date Time].[Date Time].[GameTime].Members
+      )
+    ),
+    Hierarchize(
+      DrilldownLevel(
+        [Scores].[Team1Score].[ALL].[AllMember]
+      )
+    ),
+    Hierarchize(
+      DrilldownLevel(
+        [Scores].[Team2Score].[ALL].[AllMember]
+      )
     )
-  ) ON ROWS
+  ) ON ROWS,
+  NON EMPTY {
+    [Measures].[Average score per game],
+    [Measures].[Total scores],
+    [Measures].[contributors.COUNT]
+  } ON COLUMNS
   FROM [NanoPivotCube]
-  WHERE [Measures].[Total scores]
   CELL PROPERTIES VALUE, FORMATTED_VALUE, BACK_COLOR, FORE_COLOR, FONT_FLAGS

@@ -68,15 +68,16 @@ class Connector:
         detect_error(response)
 
         self.cubes = get_cubes_from_discovery(response)
-                
+        print(self.cubes)
+
     def mdx_query(self, mdx_request):
         def refresh():
             response = self.post('pivot/rest/v4/cube/query/mdx', {
                 "mdx": mdx_request
             })
             detect_error(response)
-            
-            return convert_mdx_to_dataframe(response)
+
+            return convert_mdx_to_dataframe(response, self.cubes)
         return Query(refresh)
 
     def store_fields(self, store):
