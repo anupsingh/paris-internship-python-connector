@@ -36,30 +36,23 @@ def find_length_positions(positions):
         if position[-1] == initial_position[-1]:
             return index + 1
 
-def get_prefilled_rows_from_headers(headers, cube):
-    res = []
+def get_prefilled_labels_from_headers(headers, cube):
+    labels = []
     aggregation_field = "All"
     for position in headers["positions"]:
-        res_element = {}
-        for index, hierarchy in enumerate(headers["hierarchies"][:-1]):
-            if len(position[index]["namePath"]) == 1:
-                res_element[hierarchy["hierarchy"]] = aggregation_field
-            else:
-                res_element[hierarchy["hierarchy"]] = position[index]["namePath"][1]
-        res.append(res_element)
-    return res
-
-def inject_values_to_rows(cells, headers, loop_length, rows_from_headers):
-    rows = []
-    for row in cells:
-        for index in range(len(row) // loop_length):
-            if not isnan(row[index * loop_length]):
-                res = rows_from_headers[index].copy()
-                for counter in range(loop_length):
-                    i = index * loop_length + counter
-                    res[headers[i][-1]["namePath"][0]] = row[i]
-                rows.append(res)
-    return rows
+        label_element = {}
+        for (label, hierarchy) in zip(position, headers["hierarchies"]):
+            if hierarchy["hierarchy"] != "Measures":
+                if len(label["namePath"]) == 1:
+                    label_element[hierarchy["hierarchy"]] = aggregation_field
+                else:
+                    levels = cube["dimensions"][hierarchy["dimension"]]["hierarchies"][hierarchy["hierarchy"]]["levels"]
+                    for (index, level) in enumerate(label["namePath"][1:]):
+                        # ToDo: parsing int, float, str
+                        # ToDo: Save formating in "apply formater" of Query
+                        label_element[levels[index + 1]] = level
+        labels.append(label_element)
+    return labels
 
 def convert_mdx_to_dataframe(dictionary, cubes):
     cube = cubes[dictionary["data"]["cube"]]
@@ -74,14 +67,24 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     number_of_useful_headers = find_length_positions(positions)
     headers["positions"] = positions[::number_of_useful_headers]
 
-    rows_from_headers = get_prefilled_rows_from_headers(headers, cube)
-
+    rows_from_headers = get_prefilled_labels_from_headers(headers, cube)
+    cols = get_prefilled_labels_from_headers(dictionary["data"]["axes"][1], cube)
+    
     for cell in dictionary["data"]["cells"]:
         row = cell["ordinal"] // nb_cols
         col = cell["ordinal"] % nb_cols
         cells[row][col] = cell["value"]
 
-    rows = inject_values_to_rows(cells, positions, number_of_useful_headers, rows_from_headers)
+    rows = []
+    for (row_index, row) in enumerate(cells):
+        # ToDo: measures aren't always in last position
+        for index in range(len(row) // number_of_useful_headers):
+            if not isnan(row[index * number_of_useful_headers]):
+                res = { **rows_from_headers[index], **cols[row_index] }
+                for counter in range(number_of_useful_headers):
+                    i = index * number_of_useful_headers + counter
+                    res[positions[i][-1]["namePath"][0]] = row[i]
+                rows.append(res)
 
     return pd.DataFrame(data=rows)
 
