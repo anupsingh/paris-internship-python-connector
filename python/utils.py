@@ -29,14 +29,25 @@ def get_cubes_from_discovery(dictionary):
             }
     return cubes
 
-def header_to_empty_dict(axe, cube):
-    return [{"Team1Score": "ALL"} for header in axe["positions"]]
-
 def find_length_positions(positions):
     initial_position = positions[0]
     for (index, position) in enumerate(positions[1:]):
         if position[-1] == initial_position[-1]:
             return index + 1
+
+def header_to_empty_dict(headers, cube):
+    res = []
+    aggregation_field = "All"
+    for position in headers["positions"]:
+        res_element = {}
+        for hierarchy in headers["hierarchies"][:-1]:
+            if len(position[0]["namepath"]) == 1:
+                res_element[hierarchy["hierarchy"]] = aggregation_field
+            else:
+                res_element[hierarchy["hierarchy"]] = position[0]["namepath"][1]
+        res.append(res_element)
+    print(res)
+    return res
 
 def convert_mdx_to_dataframe(dictionary, cubes):
     cube = cubes[dictionary["data"]["cube"]]
