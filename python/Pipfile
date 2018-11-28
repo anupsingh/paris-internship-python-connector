@@ -8,6 +8,7 @@ python_version = "3.7"
 
 [scripts]
 call="python call.py"
+call-i"python -i call.py"
 
 [packages]
 pandas = "==0.23.4"
