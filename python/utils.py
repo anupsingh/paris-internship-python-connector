@@ -35,6 +35,7 @@ def find_length_positions(positions):
     for (index, position) in enumerate(positions[1:]):
         if position[-1] == initial_position[-1]:
             return index + 1
+    return -1
 
 def get_prefilled_labels_from_headers(headers, cube):
     labels = []
@@ -54,7 +55,16 @@ def get_prefilled_labels_from_headers(headers, cube):
         labels.append(label_element)
     return labels
 
+def detect_measures_axe_id(dictionary):
+    for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
+        for (hierarchy_index, hierarchy) in enumerate(axe["hierarchies"]):
+            if hierarchy["hierarchy"] == "Measures":
+                return (axe_index, hierarchy_index)
+    return (-1, -1)
+
+
 def convert_mdx_to_dataframe(dictionary, cubes):
+    #  ToDo: Support more than 2 axes
     cube = cubes[dictionary["data"]["cube"]]
 
     nb_rows = len(dictionary["data"]["axes"][1]["positions"])
@@ -65,7 +75,7 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     headers = dictionary["data"]["axes"][0]
     positions = headers["positions"]
     number_of_useful_headers = find_length_positions(positions)
-    headers["positions"] = positions[::number_of_useful_headers]
+    # headers["positions"] = positions[::number_of_useful_headers]
 
     rows_from_headers = get_prefilled_labels_from_headers(headers, cube)
     cols = get_prefilled_labels_from_headers(dictionary["data"]["axes"][1], cube)
@@ -76,14 +86,45 @@ def convert_mdx_to_dataframe(dictionary, cubes):
         cells[row][col] = cell["value"]
 
     rows = []
+
+    measures_axe_id, measures_hierarchy_id = detect_measures_axe_id(dictionary)
+
+    if measures_axe_id == -1:
+        # ToDo: Compute later
+        return
+    
+    print(measures_axe_id)
+    cardinals_axe_with_measures = [set() for _ in dictionary["data"]["axes"][measures_axe_id]["hierarchies"]]
+    for position in dictionary["data"]["axes"][measures_axe_id]["positions"]:
+        for (i, p) in enumerate(position):
+            cardinals_axe_with_measures[i].add(p["namePath"][-1])
+    
+    cardinals_axe_with_measures = [len(cardinal) for cardinal in cardinals_axe_with_measures]
+    print(cardinals_axe_with_measures, measures_hierarchy_id)
+
+    nb_spikes = cardinals_axe_with_measures[measures_hierarchy_id]
+    nb_groups = 1
+    for i in range(0, measures_hierarchy_id):
+        nb_groups *= cardinals_axe_with_measures[i]
+    print(nb_groups)
+    
+    offset = 1
+    for i in range(measures_hierarchy_id + 1, len(cardinals_axe_with_measures)):
+        offset *= cardinals_axe_with_measures[i]
+    print(offset)
+    
+    size_group = offset * nb_spikes
+
     for (row_index, row) in enumerate(cells):
-        # ToDo: measures aren't always in last position
-        for index in range(len(row) // number_of_useful_headers):
-            if not isnan(row[index * number_of_useful_headers]):
-                res = { **rows_from_headers[index], **cols[row_index] }
-                for counter in range(number_of_useful_headers):
-                    i = index * number_of_useful_headers + counter
-                    res[positions[i][-1]["namePath"][0]] = row[i]
+        for index_group in range(nb_groups):
+            for index_fork in range(offset):
+                index_beginning_fork = index_group * size_group + index_fork
+                # print(index_beginning_fork, len(rows_from_headers))
+                res = { **rows_from_headers[index_beginning_fork], **cols[row_index] }
+                for index_spike in range(nb_spikes):
+                    i = index_beginning_fork + offset*index_spike
+                    # print(i, len(row))
+                    res[positions[i][-1]["namePath"][-1]] = row[i]
                 rows.append(res)
 
     return pd.DataFrame(data=rows)
