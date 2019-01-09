@@ -93,30 +93,63 @@ class Connector:
     #         return convert_store_to_dataframe(headers, rows)
     #     return Query(refresh)
 
-    def store_query(self, store, fields, branch="master", conditions=None, epoch=1, timeout=30000):
+    def stores(self):
+        response = self.get('pivot/rest/v4/datastore/discovery/storeNames')
+        detect_error(response)
+        return response['data']
+
+    def store_references(self, store):
+        response = self.get(f'pivot/rest/v4/datastore/discovery/references/{store}')
+        detect_error(response)
+        return response['data']
+
+    def store_query(self, store, fields, branch="master", conditions=None, epoch=None, timeout=30000, limit=100, offset=0):
         # ToDo: Add limit and offset, by default, limit is 100 on the API, limit = max 1000 (ou 10 appels de max page)
+        page_size = min(limit, 100)
+        start_extras = offset % page_size
+        end_extras = (offset + limit) % page_size
+        # pages = (limit + (offset % page_size)) // page_size + 1
+        pages = (start_extras != 0) + limit // page_size + (end_extras != 0)
+        page_offset = offset // page_size + 1
+        
+        print(page_size, pages, page_offset, start_extras)
+
         def refresh():
             cond = conditions
             base = "pivot/rest/v4/datastore"
             body = {
                 "fields": fields,
-                "epoch": epoch,
                 "branch": branch,
                 "timeout": timeout
             }
+            if epoch != None: body['epoch'] = epoch
             if cond:
                 if type(cond) == str:
                     cond = json.loads(cond)
                 body["conditions"] = cond
             
-            response = self.post(f'{base}/data/stores/{store}?query', body)
+            response = self.post(f'{base}/data/stores/{store}?query=&page={page_offset}', body)
             detect_error(response)
             headers = parse_headers(response["data"]["headers"])
             rows = response["data"]["rows"]
-            while response["data"]["pagination"].get("nextPageUrl"):
-                response = self.post(f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query', body)
-                detect_error(response)
-                rows.extend(response["data"]["rows"])
+            trim_end = (pages * page_size) > (limit + start_extras)
+            for i in range(pages):
+                print("On page", i + 1)
+                if response["data"]["pagination"].get("nextPageUrl"):
+                    response = self.post(f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body)
+                    detect_error(response)
+                    rows.extend(response["data"]["rows"])
+                    print("Rows: ", rows)
+            # Trimming
+            if trim_end:
+                end_extras = page_size - (start_extras + limit % page_size)
+                rows = rows[start_extras:(- end_extras)]
+            else:
+                rows = rows[start_extras:]
+            print("Final Rows: ")
+            print(rows)
+            print("End trimmed?")
+            print(trim_end)
             return convert_store_to_dataframe(headers, rows)
         return Query(refresh)
 
