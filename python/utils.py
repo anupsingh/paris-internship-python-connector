@@ -4,6 +4,22 @@ from math import isnan
 
 AGGREGATION_FIELD = "All"
 
+
+def autoparse(value, type=None):
+    try:
+        if type is not None:
+            return type(value)
+    except:
+        return value
+    try:
+        return int(value)
+    except:
+        try:
+            return float(value)
+        except:
+            return value
+
+
 def get_cubes_from_discovery(dictionary):
     cubes = {}
     for cube in dictionary["data"]["catalogs"][0]["cubes"]:
