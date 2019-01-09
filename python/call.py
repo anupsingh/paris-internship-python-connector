@@ -1,4 +1,4 @@
-from pivot import Connector
+from pivot import Connector, AGGREGATION_FIELD
 
 ACTIVEPIVOT_ENDPOINT = "http://localhost:9090/"
 
