@@ -99,6 +99,9 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     global AGGREGATION_FIELD
     cube = cubes[dictionary["data"]["cube"]]
 
+    if len(dictionary["data"]["axes"]) != 2:
+        raise Exception("Can only process 2 axes")
+
     nb_rows = len(dictionary["data"]["axes"][1]["positions"])
     nb_cols = len(dictionary["data"]["axes"][0]["positions"])
 
