@@ -55,6 +55,7 @@ def find_length_positions(positions):
         if position[-1] == initial_position[-1]:
             return index + 1
 
+
 def get_prefilled_label_from_headers(position, hierarchies, cube):
     global AGGREGATION_FIELD
     label_element = {}
@@ -66,18 +67,21 @@ def get_prefilled_label_from_headers(position, hierarchies, cube):
                 levels = cube["dimensions"][hierarchy["dimension"]
                                             ]["hierarchies"][hierarchy["hierarchy"]]["levels"]
                 for (index, level) in enumerate(levels[1:]):
-                    # ToDo: parsing int, float, str
                     # ToDo: Save formating in "apply formater" of Query
-                    value = label["namePath"][index + 1] if len(label["namePath"]) > index + 1 else AGGREGATION_FIELD
-                    label_element[level] = value
+                    value = label["namePath"][index + 1] if len(
+                        label["namePath"]) > index + 1 else AGGREGATION_FIELD
+                    label_element[level] = autoparse(value)
     return label_element
+
 
 def get_prefilled_labels_from_headers(headers, cube):
     labels = []
     hierarchies = headers["hierarchies"]
     for position in headers["positions"]:
-        labels.append(get_prefilled_label_from_headers(position, hierarchies, cube))
+        labels.append(get_prefilled_label_from_headers(
+            position, hierarchies, cube))
     return labels
+
 
 def detect_measures_axe_id(dictionary):
     for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
@@ -132,12 +136,12 @@ def convert_mdx_to_dataframe(dictionary, cubes):
             # hash_row = "____".join([
             hash_row = "___".join([
                 # "___".join([
-                    "__".join([
-                        "_".join(hierarchy)
-                        # for hierarchy in position
-                        for hierarchy in axe[0]
-                    ])
-                    # for position in axe
+                "__".join([
+                    "_".join(hierarchy)
+                    # for hierarchy in position
+                    for hierarchy in axe[0]
+                ])
+                # for position in axe
                 # ])
                 for axe in raw_row
             ])
@@ -149,7 +153,8 @@ def convert_mdx_to_dataframe(dictionary, cubes):
                     # print("axe", axe)
                     this_position_index = this_axes[axe_index]
                     for _ in axe[0]:
-                        headers = get_prefilled_label_from_headers(dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube)
+                        headers = get_prefilled_label_from_headers(
+                            dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube)
                         row.update(headers)
 
             hashes_rows[hash_row][measure_name] = measure
