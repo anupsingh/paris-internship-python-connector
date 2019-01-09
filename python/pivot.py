@@ -3,7 +3,7 @@ from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
-from utils import get_cubes_from_discovery, convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict
+from utils import get_cubes_from_discovery, convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict, AGGREGATION_FIELD
 
 class Connector:
     # ==== Definition ====
