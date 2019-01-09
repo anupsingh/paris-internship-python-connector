@@ -5,6 +5,7 @@ import re
 import json
 from utils import get_cubes_from_discovery, convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict, AGGREGATION_FIELD
 
+
 class Connector:
     # ==== Definition ====
 
@@ -27,7 +28,7 @@ class Connector:
     def __init__(self, endpoint=None, username=None, password=None):
         self.open(endpoint)
         self.connect(username, password)
-    
+
     def open(self, endpoint):
         self.endpoint = endpoint.rstrip('/')
 
@@ -38,10 +39,10 @@ class Connector:
 
     # ==== Methods to make API calls ====
 
-
     def check_if_connected(self):
         if self.endpoint == None:
-            raise Exception('You must specify the URL of the ActivePivot instance')
+            raise Exception(
+                'You must specify the URL of the ActivePivot instance')
         if self.username == None or self.password == None:
             raise Exception('You must be connected')
 
@@ -99,7 +100,8 @@ class Connector:
         return response['data']
 
     def store_references(self, store):
-        response = self.get(f'pivot/rest/v4/datastore/discovery/references/{store}')
+        response = self.get(
+            f'pivot/rest/v4/datastore/discovery/references/{store}')
         detect_error(response)
         return response['data']
 
@@ -107,13 +109,13 @@ class Connector:
         limit = int(limit)
         offset = int(offset)
         timeout = int(timeout)
-        
+
         page_size = min(limit, 10)
         start_extras = offset % page_size
         end_extras = (offset + limit) % page_size
         nb_pages = (start_extras != 0) + limit // page_size + (end_extras != 0)
         page_offset = offset // page_size + 1
-        
+
         def refresh():
             cond = conditions
             base = "pivot/rest/v4/datastore"
@@ -122,29 +124,31 @@ class Connector:
                 "branch": branch,
                 "timeout": timeout
             }
-            if epoch != None: body['epoch'] = epoch
+            if epoch != None:
+                body['epoch'] = epoch
             if cond:
                 if type(cond) == str:
                     cond = json.loads(cond)
                 body["conditions"] = cond
-            
-            response = self.post(f'{base}/data/stores/{store}?query=&page={page_offset}&pageSize={page_size}', body)
+
+            response = self.post(
+                f'{base}/data/stores/{store}?query=&page={page_offset}&pageSize={page_size}', body)
             detect_error(response)
             headers = parse_headers(response["data"]["headers"])
             rows = response["data"]["rows"]
             page_index = 1
             while page_index < nb_pages and response["data"]["pagination"].get("nextPageUrl"):
                 page_index += 1
-                response = self.post(f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body)
+                response = self.post(
+                    f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body)
                 detect_error(response)
                 rows.extend(response["data"]["rows"])
             real_end_extras = len(rows) - offset - limit
-            # Trimming 
+            # Trimming
             rows = rows[start_extras:(len(rows)-real_end_extras)]
             return convert_store_to_dataframe(headers, rows)
         return Query(refresh)
 
-        
 
 class Query:
     method = None
@@ -156,8 +160,7 @@ class Query:
 
     def refresh(self):
         self.dataframe = self.method()
-    
-    
+
+
 def refreshed(query):
     return Query(query.method)
-    
