@@ -94,6 +94,7 @@ class Connector:
     #     return Query(refresh)
 
     def store_query(self, store, fields, branch="master", conditions=None, epoch=1, timeout=30000):
+        # ToDo: Add limit and offset, by default, limit is 100 on the API, limit = max 1000 (ou 10 appels de max page)
         def refresh():
             cond = conditions
             base = "pivot/rest/v4/datastore"
