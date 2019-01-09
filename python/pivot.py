@@ -143,7 +143,7 @@ class Connector:
                     f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body)
                 detect_error(response)
                 rows.extend(response["data"]["rows"])
-            real_end_extras = len(rows) - offset - limit
+            real_end_extras = max(len(rows) - offset - limit, 0)
             # Trimming
             rows = rows[start_extras:(len(rows)-real_end_extras)]
             return convert_store_to_dataframe(headers, rows)
