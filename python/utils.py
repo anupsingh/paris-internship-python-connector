@@ -90,10 +90,16 @@ def convert_mdx_to_dataframe(dictionary, cubes):
         dictionary)
 
     hashes_rows = {}
-    find_hashes = set()
 
     for row_index in range(nb_rows):
         for col_index in range(nb_cols):
+            measure = cells[row_index][col_index]
+            measure_name = dictionary["data"]["axes"][measures_axe_index][
+                "positions"][col_index][measures_hierarchy_index]["namePath"][-1]
+
+            if isnan(measure):
+                continue
+
             this_axes = [col_index, row_index]
             # print(measure_name, measure)
             raw_row = [
@@ -123,14 +129,12 @@ def convert_mdx_to_dataframe(dictionary, cubes):
             # print(hash_row, raw_row)
             if hash_row not in hashes_rows:
                 # ToDo: add headers in hashes_rows[hash_row]
-                # print(measure_name, measure)
-                # row = { [measure_name]: measure }
                 row = {}
                 hashes_rows[hash_row] = row
                 for (axe_index, axe) in enumerate(raw_row):
                     # print("axe", axe)
                     this_position_index = this_axes[axe_index]
-                    for (hierarchy_index, hierarchy) in enumerate(axe[0]):
+                    for _ in axe[0]:
                         # print("hierarchy", hierarchy)
                         row.update(get_prefilled_label_from_headers(dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube))
                         # print(row)
@@ -139,21 +143,12 @@ def convert_mdx_to_dataframe(dictionary, cubes):
                         # print(position)
                         # print(get_prefilled_labels_from_headers(position, cube))
                             # {'name': 'Games', 'levels': ['ALL', 'Team1Name', 'Team2Name']}
-            # ToDo: add measure in hashes_rows[hash_row]
-            # raise 'a'
-            measure = cells[row_index][col_index]
-            measure_name = dictionary["data"]["axes"][measures_axe_index][
-                "positions"][col_index][measures_hierarchy_index]["namePath"][-1]
-            
-            if not isnan(measure):
-                # print(measure_name, measure)
-                hashes_rows[hash_row][measure_name] = measure
-                find_hashes.add(hash_row)
 
-            # for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
-    hashes_rows = { hash: hashes_rows[hash] for hash in find_hashes }
-    print(hashes_rows)
-    return pd.DataFrame(data=[])
+            hashes_rows[hash_row][measure_name] = measure
+
+    # print(hashes_rows)
+    data = [hashes_rows[hash] for hash in hashes_rows]
+    return pd.DataFrame(data=data)
 
 
 def convert_store_to_dataframe(headers, rows):
