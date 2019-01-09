@@ -5,19 +5,22 @@ from math import isnan
 AGGREGATION_FIELD = "All"
 
 
-def autoparse(value, type=None):
+def autotype(value, type=None):
     try:
         if type is not None:
-            return type(value)
+            type(value)
+            return type
     except:
-        return value
+        return str
     try:
-        return int(value)
+        int(value)
+        return int
     except:
         try:
-            return float(value)
+            float(value)
+            return float
         except:
-            return value
+            return str
 
 
 def get_cubes_from_discovery(dictionary):
@@ -70,7 +73,8 @@ def get_prefilled_label_from_headers(position, hierarchies, cube):
                     # ToDo: Save formating in "apply formater" of Query
                     value = label["namePath"][index + 1] if len(
                         label["namePath"]) > index + 1 else AGGREGATION_FIELD
-                    label_element[level] = autoparse(value)
+                    type = autotype(value)
+                    label_element[level] = type(value)
     return label_element
 
 
