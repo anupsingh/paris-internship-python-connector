@@ -2,9 +2,7 @@ import pandas as pd
 from math import isnan
 
 
-def log(x, end="\n"):
-    print(x, end=end)
-    return x
+AGGREGATION_FIELD = "All"
 
 def get_cubes_from_discovery(dictionary):
     cubes = {}
@@ -42,24 +40,24 @@ def find_length_positions(positions):
             return index + 1
 
 def get_prefilled_label_from_headers(position, hierarchies, cube):
-    aggregation_field = "All"
+    global AGGREGATION_FIELD
     label_element = {}
     for (label, hierarchy) in zip(position, hierarchies):
         if hierarchy["hierarchy"] != "Measures":
             if len(label["namePath"]) == 1:
-                label_element[hierarchy["hierarchy"]] = aggregation_field
+                label_element[hierarchy["hierarchy"]] = AGGREGATION_FIELD
             else:
                 levels = cube["dimensions"][hierarchy["dimension"]
                                             ]["hierarchies"][hierarchy["hierarchy"]]["levels"]
-                for (index, level) in enumerate(label["namePath"][1:]):
+                for (index, level) in enumerate(levels[1:]):
                     # ToDo: parsing int, float, str
                     # ToDo: Save formating in "apply formater" of Query
-                    label_element[levels[index + 1]] = level
+                    value = label["namePath"][index + 1] if len(label["namePath"]) > index + 1 else AGGREGATION_FIELD
+                    label_element[level] = value
     return label_element
 
 def get_prefilled_labels_from_headers(headers, cube):
     labels = []
-    aggregation_field = "All"
     hierarchies = headers["hierarchies"]
     for position in headers["positions"]:
         labels.append(get_prefilled_label_from_headers(position, hierarchies, cube))
@@ -74,6 +72,7 @@ def detect_measures_axe_id(dictionary):
 
 
 def convert_mdx_to_dataframe(dictionary, cubes):
+    global AGGREGATION_FIELD
     cube = cubes[dictionary["data"]["cube"]]
 
     nb_rows = len(dictionary["data"]["axes"][1]["positions"])
@@ -128,21 +127,14 @@ def convert_mdx_to_dataframe(dictionary, cubes):
             ])
             # print(hash_row, raw_row)
             if hash_row not in hashes_rows:
-                # ToDo: add headers in hashes_rows[hash_row]
                 row = {}
                 hashes_rows[hash_row] = row
                 for (axe_index, axe) in enumerate(raw_row):
                     # print("axe", axe)
                     this_position_index = this_axes[axe_index]
                     for _ in axe[0]:
-                        # print("hierarchy", hierarchy)
-                        row.update(get_prefilled_label_from_headers(dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube))
-                        # print(row)
-                        # print("------")
-                        # print(dictionary["data"]["axes"][axe_index]["positions"][position_index])
-                        # print(position)
-                        # print(get_prefilled_labels_from_headers(position, cube))
-                            # {'name': 'Games', 'levels': ['ALL', 'Team1Name', 'Team2Name']}
+                        headers = get_prefilled_label_from_headers(dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube)
+                        row.update(headers)
 
             hashes_rows[hash_row][measure_name] = measure
 
