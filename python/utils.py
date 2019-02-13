@@ -52,9 +52,9 @@ def get_prefilled_label_from_headers(position, hierarchies, cube):
                 levels = cube["dimensions"][hierarchy["dimension"]
                                             ]["hierarchies"][hierarchy["hierarchy"]]["levels"]
                 for (index, level) in enumerate(levels[1:]):
-                    # ToDo: Save formating in "apply formater" of Query
                     value = label["namePath"][index + 1] if len(
                         label["namePath"]) > index + 1 else AGGREGATION_FIELD
+                    label_element[level] = value
     return label_element
 
 
