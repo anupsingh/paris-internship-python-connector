@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 import re
 import json
 from utils import get_cubes_from_discovery, convert_mdx_to_dataframe, parse_headers, detect_error, convert_store_to_dataframe, list_to_dict, AGGREGATION_FIELD
+from autotype import auto_type_list
 
 
 class Connector:
@@ -153,13 +154,36 @@ class Connector:
 class Query:
     method = None
     dataframe = None
+    types = {}
 
-    def __init__(self, method):
+    def __init__(self, method, types = {}):
         self.method = method
+        self.types = types
         self.refresh()
+        self.detect_type()
 
     def refresh(self):
         self.dataframe = self.method()
+        self.apply_types()
+
+    def detect_type(self):
+        def detect_type(values):
+            type = auto_type_list(values)
+            name = values.name
+            if type is not None and name not in self.types:
+                self.types[name] = type
+        self.dataframe.apply(detect_type)
+
+    def apply_types(self):
+        if self.dataframe is None:
+            return
+
+        def format_dataframe(values):
+            type = self.types.get(values.name)
+            if type is None:
+                type = lambda x: x
+            return [type(value) for value in values]
+        self.dataframe.update(self.dataframe.apply(format_dataframe))
 
 
 def refreshed(query):
