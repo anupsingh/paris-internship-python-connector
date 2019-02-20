@@ -24,5 +24,12 @@ SELECT
 total_scores_2 = query_2.dataframe[[
     "Team1Name", "Total scores"]].groupby("Team1Name").sum()
 
+query_3 = connector.store_query("RussiaWorldCup2018", fields = ['Team1Name', 'Team2Name', 'Team1Score', 'Team2Score'])
+total_scores_3 = query_3.dataframe[["Team1Name", "Team1Score", "Team2Score"]].groupby("Team1Name").sum()
+total_scores_3["Total scores"] = total_scores_3["Team1Score"] + total_scores_3["Team2Score"]
+del total_scores_3["Team1Score"]
+del total_scores_3["Team2Score"]
+
 
 print(total_scores_1 == total_scores_2)
+print(total_scores_1 == total_scores_3)
