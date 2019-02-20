@@ -161,6 +161,7 @@ class Query:
         self.types = types
         self.refresh()
         self.detect_type()
+        self.apply_types()
 
     def refresh(self):
         self.dataframe = self.method()
@@ -182,7 +183,7 @@ class Query:
             type = self.types.get(values.name)
             if type is None:
                 type = lambda x: x
-            return [type(value) for value in values]
+            return [type(value) if value != AGGREGATION_FIELD else AGGREGATION_FIELD for value in values]
         self.dataframe.update(self.dataframe.apply(format_dataframe))
 
 
