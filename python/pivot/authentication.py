@@ -15,7 +15,6 @@ def _post(url: str, params: Dict[str, str] = {}, body: Dict[str, str] = {}) -> s
 
 
 class Auth(NamedTuple):
-    is_connected: Callable[[], None]
     get: _get
     post: _post
 
@@ -65,5 +64,5 @@ def simple_auth(username: str, password: str) -> Callable[[str], Auth]:
                 "Content-Type": "application/json"
             }, data=body).text)
 
-        return Auth(is_connected, get, post)
+        return Auth(get, post)
     return call

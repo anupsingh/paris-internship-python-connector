@@ -10,58 +10,13 @@ from .autotype import auto_type_list
 class Connector:
     # ==== Definition ====
 
-    endpoint = None
-    username = None
-    password = None
     cubes = None
 
-    @property
-    def authorization(self):
-        token = f'{self.username}:{self.password}'
-        return b64encode(token.encode('utf-8')).decode('utf-8')
-
-    def url(self, pathname, options={}):
-        uri = f'{self.endpoint}/{pathname.lstrip("/")}'
-        if len(options) >= 1:
-            uri = f'{uri}?{urlencode(options)}'
-        return uri
-
-    def __init__(self, endpoint=None, username=None, password=None):
-        self.open(endpoint)
-        self.connect(username, password)
-
-    def open(self, endpoint):
-        self.endpoint = endpoint.rstrip('/')
-
-    def connect(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, endpoint, authentication):
+        tools = authentication(endpoint.rstrip('/'))
+        self.get = tools.get
+        self.post = tools.post
         self.discover()
-
-    # ==== Methods to make API calls ====
-
-    def check_if_connected(self):
-        if self.endpoint == None:
-            raise Exception(
-                'You must specify the URL of the ActivePivot instance')
-        if self.username == None or self.password == None:
-            raise Exception('You must be connected')
-
-    def get(self, url):
-        self.check_if_connected()
-        endpoint = self.url(url)
-        return json.loads(rq.get(endpoint, headers={
-            "Authorization": f'Basic {self.authorization}',
-        }).text)
-
-    def post(self, url, body):
-        self.check_if_connected()
-        endpoint = self.url(url)
-        body = json.dumps(body).encode('utf-8')
-        return json.loads(rq.post(endpoint, headers={
-            "Authorization": f'Basic {self.authorization}',
-            "Content-Type": "application/json"
-        }, data=body).text)
 
     # ==== Get data about every cubes ====
 
@@ -74,7 +29,7 @@ class Connector:
 
     def mdx_query(self, mdx_request):
         def refresh():
-            response = self.post('pivot/rest/v4/cube/query/mdx', {
+            response = self.post('pivot/rest/v4/cube/query/mdx', body={
                 "mdx": mdx_request
             })
             detect_error(response)
@@ -133,7 +88,7 @@ class Connector:
                 body["conditions"] = cond
 
             response = self.post(
-                f'{base}/data/stores/{store}?query=&page={page_offset}&pageSize={page_size}', body)
+                f'{base}/data/stores/{store}?query=&page={page_offset}&pageSize={page_size}', body=body)
             detect_error(response)
             headers = parse_headers(response["data"]["headers"])
             rows = response["data"]["rows"]
@@ -141,7 +96,7 @@ class Connector:
             while page_index < nb_pages and response["data"]["pagination"].get("nextPageUrl"):
                 page_index += 1
                 response = self.post(
-                    f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body)
+                    f'{base}{response["data"]["pagination"]["nextPageUrl"]}&query=', body=body)
                 detect_error(response)
                 rows.extend(response["data"]["rows"])
             real_end_extras = max(len(rows) - offset - limit, 0)
@@ -156,7 +111,7 @@ class Query:
     dataframe = None
     types = {}
 
-    def __init__(self, method, types = {}):
+    def __init__(self, method, types={}):
         self.method = method
         self.types = types
         self.refresh()
@@ -182,7 +137,7 @@ class Query:
         def format_dataframe(values):
             type = self.types.get(values.name)
             if type is None:
-                type = lambda x: x
+                def type(x): return x
             return [type(value) if value != AGGREGATION_FIELD else AGGREGATION_FIELD for value in values]
         self.dataframe.update(self.dataframe.apply(format_dataframe))
 
