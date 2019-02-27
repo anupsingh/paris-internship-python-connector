@@ -27,7 +27,7 @@ class Connector:
         self.cubes = get_cubes_from_discovery(response)
         # print(self.cubes)
 
-    def mdx_query(self, mdx_request):
+    def mdx_query(self, mdx_request, types = {}):
         def refresh():
             response = self.post('pivot/rest/v4/cube/query/mdx', body={
                 "mdx": mdx_request
@@ -35,7 +35,7 @@ class Connector:
             detect_error(response)
 
             return convert_mdx_to_dataframe(response, self.cubes)
-        return Query(refresh)
+        return Query(refresh, types)
 
     def store_fields(self, store):
         response = self.get(f'pivot/rest/v4/datastore/data/stores/{store}')
@@ -61,7 +61,7 @@ class Connector:
         detect_error(response)
         return response['data']
 
-    def store_query(self, store, fields, branch="master", conditions=None, epoch=None, timeout=30000, limit=100, offset=0):
+    def store_query(self, store, fields, branch="master", conditions=None, epoch=None, timeout=30000, limit=100, offset=0, types={}):
         limit = int(limit)
         offset = int(offset)
         timeout = int(timeout)
@@ -103,23 +103,23 @@ class Connector:
             # Trimming
             rows = rows[start_extras:(len(rows)-real_end_extras)]
             return convert_store_to_dataframe(headers, rows)
-        return Query(refresh)
+        return Query(refresh, types)
 
 
 class Query:
-    method = None
+    __method = None
     dataframe = None
     types = {}
 
     def __init__(self, method, types={}):
-        self.method = method
+        self.__method = method
         self.types = types
         self.refresh()
         self.detect_type()
         self.apply_types()
 
     def refresh(self):
-        self.dataframe = self.method()
+        self.dataframe = self.__method()
         self.apply_types()
 
     def detect_type(self):
@@ -137,10 +137,10 @@ class Query:
         def format_dataframe(values):
             type = self.types.get(values.name)
             if type is None:
-                def type(x): return x
+                type = lambda x: x
             return [type(value) if value != AGGREGATION_FIELD else AGGREGATION_FIELD for value in values]
         self.dataframe.update(self.dataframe.apply(format_dataframe))
 
 
 def refreshed(query):
-    return Query(query.method)
+    return Query(query.method, query.types)
