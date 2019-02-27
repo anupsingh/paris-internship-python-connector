@@ -5,12 +5,8 @@ from pivot import Connector
 from pivot.authentication import basic_auth
 
 active_pivot_endpoint = "https://endpoint.my-activepivot.com/"
-authentication = basic_auth(
-  "admin", # username
-  "admin",  # password
-)
 
-connector = Connector(active_pivot_endpoint, authentication)
+connector = Connector(active_pivot_endpoint, basic_auth("username", "password"))
 ```
 
 # Authentication
