@@ -6,7 +6,8 @@ Table of Contents
   - [Attributes](#attributes)
   - [Methods](#methods)
   - [Types](#types)
-  - [MDX](#mdx)
+- [Queries](#queries)
+  - [MDX query](#mdx-query)
 
 ## How to define a connector
 
@@ -76,4 +77,22 @@ query.apply_type()
 
 If a type fails on a data, there is a fallback on the str type.
 
-### MDX
+## Queries
+
+### MDX query
+
+Basic usage:
+
+```py
+query = connector.mdx_query(MDX_QUERY_STRING)
+
+print(query.dataframe)
+```
+
+If you want to set a few custom types:
+
+```py
+query = connector.mdx_query(MDX_QUERY_STRING, { "complex_column": complex })
+
+print(query.dataframe)
+```
