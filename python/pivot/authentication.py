@@ -33,9 +33,9 @@ def build_url(endpoint: str, pathname: str, params: Dict[str, str] = {})->str:
     return uri
 
 
-def simple_auth(username: str, password: str) -> Callable[[str], Auth]:
+def basic_auth(username: str, password: str) -> Callable[[str], Auth]:
     """
-    Create a wrapper around a simple auth API
+    Create a wrapper around an API secured with basic authentication
     """
     def call(endpoint: str) -> Auth:
         token = f'{username}:{password}'

@@ -1,9 +1,9 @@
 from pivot import Connector, AGGREGATION_FIELD
-from pivot.authentication import simple_auth
+from pivot.authentication import basic_auth
 
 ACTIVEPIVOT_ENDPOINT = "http://localhost:9090/"
 
-connector = Connector(ACTIVEPIVOT_ENDPOINT, simple_auth("admin", "admin"))
+connector = Connector(ACTIVEPIVOT_ENDPOINT, basic_auth("admin", "admin"))
 
 mdx_request = ''
 
