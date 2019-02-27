@@ -120,24 +120,18 @@ def convert_mdx_to_dataframe(dictionary, cubes):
                 ]
                 for (axe_index, axe) in enumerate(dictionary["data"]["axes"])
             ]
-            # hash_row = "____".join([
             hash_row = "___".join([
-                # "___".join([
                 "__".join([
                     "_".join(hierarchy)
-                    # for hierarchy in position
                     for hierarchy in axe[0]
                 ])
-                # for position in axe
-                # ])
                 for axe in raw_row
             ])
-            # print(hash_row, raw_row)
+
             if hash_row not in hashes_rows:
                 row = {}
                 hashes_rows[hash_row] = row
                 for (axe_index, axe) in enumerate(raw_row):
-                    # print("axe", axe)
                     this_position_index = this_axes[axe_index]
                     for _ in axe[0]:
                         headers = get_prefilled_label_from_headers(
@@ -146,7 +140,6 @@ def convert_mdx_to_dataframe(dictionary, cubes):
 
             hashes_rows[hash_row][measure_name] = measure
 
-    # print(hashes_rows)
     data = [hashes_rows[hash] for hash in hashes_rows]
     return pd.DataFrame(data=data)
 
