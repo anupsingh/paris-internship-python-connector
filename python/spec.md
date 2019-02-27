@@ -16,13 +16,13 @@ df1 = query1.to_data_frame()
 best_teams = df1.loc[df['Total'] > 10, 'TeamName1']
 ```
 
-## Get fields from datasotre
+## Get fields from datastore
 
 ```python
 fields = connector.store_fields(store='RussiaWorldCup2018')
 ```
 
-## Data frame from a Datatore query
+## Data frame from a Datastore query
 
 ```python
 query2 = connector.store_query(store='RussiaWorldCup2018', fields = ['Team1Name', 'Team2Name'])

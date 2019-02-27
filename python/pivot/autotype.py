@@ -1,4 +1,4 @@
-from utils import AGGREGATION_FIELD
+from .utils import AGGREGATION_FIELD
 
 
 def type_prioriy(type=None):
