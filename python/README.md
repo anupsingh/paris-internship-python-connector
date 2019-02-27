@@ -8,6 +8,9 @@ Table of Contents
   - [Types](#types)
 - [Queries](#queries)
   - [MDX query](#mdx-query)
+  - [Datastore query](#datastore-query)
+  - [Store references](#store-references)
+  - [Stores](#stores)
 
 ## How to define a connector
 
@@ -96,3 +99,15 @@ query = connector.mdx_query(MDX_QUERY_STRING, { "complex_column": complex })
 
 print(query.dataframe)
 ```
+
+### Datastore query
+
+ToDo
+
+### Store references
+
+ToDo
+
+### Stores
+
+ToDo
