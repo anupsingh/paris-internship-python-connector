@@ -36,12 +36,12 @@ df_2 = query_2.dataframe[['Team1Name', 'Team2Name', 'Team1Score', 'Team2Score']]
 def get_df(df, name):
     df_1 = df.loc[(df['Team1Name'] == name) & (df['Team1Score'] != AGGREGATION_FIELD) & (df['Team2Score'] != AGGREGATION_FIELD)]
     df_2 = df.loc[(df['Team2Name'] == name) & (df['Team1Score'] != AGGREGATION_FIELD) & (df['Team2Score'] != AGGREGATION_FIELD)].rename(columns={'Team1Score': 'Team2Score', 'Team2Score': 'Team1Score', 'Team1Name': 'Team2Name', 'Team2Name': 'Team1Name'})
-    return pd.concat([df_1, df_2], sort=False)
+    return pd.concat([df_1, df_2], sort=False).sort_values(by=["Team1Name", "Team2Name"])
 
 def get_df_2(df, name):
     df_1 = df.loc[(df['Team1Name'] == name)]
     df_2 = df.loc[(df['Team2Name'] == name)].rename(columns={'Team1Score': 'Team2Score', 'Team2Score': 'Team1Score', 'Team1Name': 'Team2Name', 'Team2Name': 'Team1Name'})
-    return pd.concat([df_1, df_2], sort=False)
+    return pd.concat([df_1, df_2], sort=False).sort_values(by=["Team1Name", "Team2Name"])
 
 df_france = get_df(df_1, 'France')
 df_france_2 = get_df_2(df_2, 'France')
