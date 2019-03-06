@@ -19,6 +19,9 @@ class Auth(NamedTuple):
     post: _post
 
 
+AuthenticationBuilder = Callable[[str], Auth]
+
+
 def build_url(endpoint: str, pathname: str, params: Dict[str, str] = {}) -> str:
     """
     Format an url string:
@@ -33,7 +36,7 @@ def build_url(endpoint: str, pathname: str, params: Dict[str, str] = {}) -> str:
     return uri
 
 
-def basic_auth(username: str, password: str) -> Callable[[str], Auth]:
+def basic_auth(username: str, password: str) -> AuthenticationBuilder:
     """
     Create a wrapper around an API secured with basic authentication
     """

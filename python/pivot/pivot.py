@@ -1,18 +1,25 @@
 import requests as rq
+import pandas as pd
 from base64 import b64encode
 from urllib.parse import urlencode
 import re
 import json
+
+from typing import Dict, List, Union
+
 from .utils import (
     get_cubes_from_discovery,
     convert_mdx_to_dataframe,
     parse_headers,
     detect_error,
     convert_store_to_dataframe,
-    list_to_dict,
-    AGGREGATION_FIELD,
 )
-from .autotype import auto_type_list
+from .query import Query
+from .authentication import AuthenticationBuilder
+from .autotype import Types
+
+
+JSON_Flat = Dict[str, Union[str, int, None]]
 
 
 class Connector:
@@ -20,7 +27,7 @@ class Connector:
 
     cubes = None
 
-    def __init__(self, endpoint, authentication):
+    def __init__(self, endpoint: str, authentication: AuthenticationBuilder):
         tools = authentication(endpoint.rstrip("/"))
         self.get = tools.get
         self.post = tools.post
@@ -29,13 +36,43 @@ class Connector:
     # ==== Get data about every cubes ====
 
     def discover(self):
+        """
+        Get the infos of the cube, the number of axes, their labels, ...
+        """
         response = self.get("pivot/rest/v4/cube/discovery")
         detect_error(response)
 
         self.cubes = get_cubes_from_discovery(response)
-        # print(self.cubes)
 
-    def mdx_query(self, mdx_request, types={}):
+    def stores(self) -> Types:
+        """
+        Get the list of stores of a cube
+        """
+        response = self.get("pivot/rest/v4/datastore/discovery/storeNames")
+        detect_error(response)
+        return response["data"]
+
+    def store_fields(self, store: str):
+        """
+        Get the list of available fields of a specific store with their respective types
+        """
+        response = self.get(f"pivot/rest/v4/datastore/data/stores/{store}")
+        detect_error(response)
+        return parse_headers(response["data"]["headers"])
+
+    def store_references(self, store: str):
+        """
+        Get the references of the provided store
+        """
+        response = self.get(f"pivot/rest/v4/datastore/discovery/references/{store}")
+        detect_error(response)
+        return response["data"]
+
+    def mdx_query(self, mdx_request: str, types: Types = {}) -> Query:
+        """
+        Execute a MDX query
+        """
+
         def refresh():
             response = self.post("pivot/rest/v4/cube/query/mdx", body={"mdx": mdx_request})
             detect_error(response)
@@ -44,42 +81,30 @@ class Connector:
 
         return Query(refresh, types)
 
-    def store_fields(self, store):
-        response = self.get(f"pivot/rest/v4/datastore/data/stores/{store}")
-        detect_error(response)
-        return parse_headers(response["data"]["headers"])
-
-    # def store_fields(self, store):
-    #     def refresh():
-    #         response = self.get(f'pivot/rest/v4/datastore/data/stores/{store}')
-    #         detect_error(response)
-    #         headers = parse_headers(response["data"]["headers"])
-    #         rows = response["data"]["rows"]
-    #         return convert_store_to_dataframe(headers, rows)
-    #     return Query(refresh)
-
-    def stores(self):
-        response = self.get("pivot/rest/v4/datastore/discovery/storeNames")
-        detect_error(response)
-        return response["data"]
-
-    def store_references(self, store):
-        response = self.get(f"pivot/rest/v4/datastore/discovery/references/{store}")
-        detect_error(response)
-        return response["data"]
-
     def store_query(
         self,
-        store,
-        fields,
-        branch="master",
-        conditions=None,
-        epoch=None,
-        timeout=30000,
-        limit=100,
-        offset=0,
-        types={},
-    ):
+        store: str,
+        fields: List[str],
+        branch: str = "master",
+        conditions: JSON_Flat = None,
+        epoch: Union[int, None] = None,
+        timeout: int = 30000,
+        limit: int = 100,
+        offset: int = 0,
+        types: Types = {},
+    ) -> Query:
+        """
+        Execute a query directly on the data store.
+        Must specify the name of the data store and the fields that you want to retrieve.
+
+        You can specify:
+            - the conditions if you want to filter the data
+            - the timeout of the request
+            - the epoch
+            - the branch on which the request will be done
+            - the limit and the offset for pagination
+            - the returned types
+        """
         limit = int(limit)
         offset = int(offset)
         timeout = int(timeout)
@@ -123,46 +148,3 @@ class Connector:
 
         return Query(refresh, types)
 
-
-class Query:
-    __method = None
-    dataframe = None
-    types = {}
-
-    def __init__(self, method, types={}):
-        self.__method = method
-        self.types = types
-        self.refresh()
-        self.detect_type()
-        self.apply_types()
-
-    def refresh(self):
-        self.dataframe = self.__method()
-        self.apply_types()
-
-    def detect_type(self):
-        def detect_type(values):
-            type = auto_type_list(values)
-            name = values.name
-            if type is not None and name not in self.types:
-                self.types[name] = type
-
-        self.dataframe.apply(detect_type)
-
-    def apply_types(self):
-        if self.dataframe is None:
-            return
-
-        def format_dataframe(values):
-            type = self.types.get(values.name)
-            if type is None:
-                type = lambda x: x
-            return [
-                type(value) if value != AGGREGATION_FIELD else AGGREGATION_FIELD for value in values
-            ]
-
-        self.dataframe.update(self.dataframe.apply(format_dataframe))
-
-
-def refreshed(query):
-    return Query(query.method, query.types)
