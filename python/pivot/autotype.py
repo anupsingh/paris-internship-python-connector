@@ -1,12 +1,12 @@
 from .utils import AGGREGATION_FIELD
 
 
-def type_prioriy(type=None):
+def type_priority(type=None):
     return [type, int, float, str]
 
 
 def auto_type(value, type=None):
-    types = type_prioriy(type)
+    types = type_priority(type)
     if value == AGGREGATION_FIELD:
         return type
     for t in types:
@@ -20,5 +20,5 @@ def auto_type(value, type=None):
 
 
 def auto_type_list(values, type=None):
-    types = type_prioriy(type)
+    types = type_priority(type)
     return types[max([types.index(auto_type(value, type)) for value in values])]

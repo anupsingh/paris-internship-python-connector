@@ -19,18 +19,16 @@ def get_cubes_from_discovery(dictionary):
             for hierarchy in dimension["hierarchies"]:
                 formatted_hierarchy = {
                     "name": hierarchy["caption"],
-                    "levels": [level["name"] for level in hierarchy["levels"]]
+                    "levels": [level["name"] for level in hierarchy["levels"]],
                 }
                 hierarchies[hierarchy["name"]] = formatted_hierarchy
             formatted_dimension["hierarchies"] = hierarchies
-            formatted_dimension["default_hierarchy"] = formatted_dimension["hierarchies"][dimension["defaultHierarchy"]]
+            formatted_dimension["default_hierarchy"] = formatted_dimension["hierarchies"][
+                dimension["defaultHierarchy"]
+            ]
 
             dimensions[dimension["name"]] = formatted_dimension
-        cubes[raw_name] = {
-            "name": display_name,
-            "measures": measures,
-            "dimensions": dimensions
-        }
+        cubes[raw_name] = {"name": display_name, "measures": measures, "dimensions": dimensions}
     return cubes
 
 
@@ -49,11 +47,15 @@ def get_prefilled_label_from_headers(position, hierarchies, cube):
             if len(label["namePath"]) == 1:
                 label_element[hierarchy["hierarchy"]] = AGGREGATION_FIELD
             else:
-                levels = cube["dimensions"][hierarchy["dimension"]
-                                            ]["hierarchies"][hierarchy["hierarchy"]]["levels"]
+                levels = cube["dimensions"][hierarchy["dimension"]]["hierarchies"][
+                    hierarchy["hierarchy"]
+                ]["levels"]
                 for (index, level) in enumerate(levels[1:]):
-                    value = label["namePath"][index + 1] if len(
-                        label["namePath"]) > index + 1 else AGGREGATION_FIELD
+                    value = (
+                        label["namePath"][index + 1]
+                        if len(label["namePath"]) > index + 1
+                        else AGGREGATION_FIELD
+                    )
                     label_element[level] = value
     return label_element
 
@@ -62,8 +64,7 @@ def get_prefilled_labels_from_headers(headers, cube):
     labels = []
     hierarchies = headers["hierarchies"]
     for position in headers["positions"]:
-        labels.append(get_prefilled_label_from_headers(
-            position, hierarchies, cube))
+        labels.append(get_prefilled_label_from_headers(position, hierarchies, cube))
     return labels
 
 
@@ -85,23 +86,23 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     nb_rows = len(dictionary["data"]["axes"][1]["positions"])
     nb_cols = len(dictionary["data"]["axes"][0]["positions"])
 
-    cells = [[float('nan') for i in range(nb_cols)] for j in range(nb_rows)]
+    cells = [[float("nan") for i in range(nb_cols)] for j in range(nb_rows)]
 
     for cell in dictionary["data"]["cells"]:
         row = cell["ordinal"] // nb_cols
         col = cell["ordinal"] % nb_cols
         cells[row][col] = cell["value"]
 
-    measures_axe_index, measures_hierarchy_index = detect_measures_axe_id(
-        dictionary)
+    measures_axe_index, measures_hierarchy_index = detect_measures_axe_id(dictionary)
 
     hashes_rows = {}
 
     for row_index in range(nb_rows):
         for col_index in range(nb_cols):
             measure = cells[row_index][col_index]
-            measure_name = dictionary["data"]["axes"][measures_axe_index][
-                "positions"][col_index][measures_hierarchy_index]["namePath"][-1]
+            measure_name = dictionary["data"]["axes"][measures_axe_index]["positions"][col_index][
+                measures_hierarchy_index
+            ]["namePath"][-1]
 
             if isnan(measure):
                 continue
@@ -113,20 +114,17 @@ def convert_mdx_to_dataframe(dictionary, cubes):
                     [
                         hierarchy["namePath"]
                         for (hierarchy_index, hierarchy) in enumerate(position)
-                        if axe_index != measures_axe_index or hierarchy_index != measures_hierarchy_index
+                        if axe_index != measures_axe_index
+                        or hierarchy_index != measures_hierarchy_index
                     ]
                     for (position_index, position) in enumerate(axe["positions"])
                     if position_index == this_axes[axe_index]
                 ]
                 for (axe_index, axe) in enumerate(dictionary["data"]["axes"])
             ]
-            hash_row = "___".join([
-                "__".join([
-                    "_".join(hierarchy)
-                    for hierarchy in axe[0]
-                ])
-                for axe in raw_row
-            ])
+            hash_row = "___".join(
+                ["__".join(["_".join(hierarchy) for hierarchy in axe[0]]) for axe in raw_row]
+            )
 
             if hash_row not in hashes_rows:
                 row = {}
@@ -135,7 +133,10 @@ def convert_mdx_to_dataframe(dictionary, cubes):
                     this_position_index = this_axes[axe_index]
                     for _ in axe[0]:
                         headers = get_prefilled_label_from_headers(
-                            dictionary["data"]["axes"][axe_index]["positions"][this_position_index], dictionary["data"]["axes"][axe_index]["hierarchies"], cube)
+                            dictionary["data"]["axes"][axe_index]["positions"][this_position_index],
+                            dictionary["data"]["axes"][axe_index]["hierarchies"],
+                            cube,
+                        )
                         row.update(headers)
 
             hashes_rows[hash_row][measure_name] = measure
@@ -145,25 +146,22 @@ def convert_mdx_to_dataframe(dictionary, cubes):
 
 
 def convert_store_to_dataframe(headers, rows):
-    datastore = [
-        {header: element for (header, element) in zip(headers, row)}
-        for row in rows
-    ]
+    datastore = [{header: element for (header, element) in zip(headers, row)} for row in rows]
     return pd.DataFrame(data=datastore)
 
 
 def detect_error(response):
-    if response['status'] == 'error':
-        error = ''
-        for err in response['error']['errorChain']:
-            error += err['message'] + '\n'
+    if response["status"] == "error":
+        error = ""
+        for err in response["error"]["errorChain"]:
+            error += err["message"] + "\n"
         raise Exception(error)
 
 
 def parse_type(element):
-    if element == 'int':
+    if element == "int":
         return int
-    if element == 'String':
+    if element == "String":
         return str
 
 
