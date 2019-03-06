@@ -87,7 +87,7 @@ class Connector:
         fields: List[str],
         branch: str = "master",
         conditions: JSON_Flat = None,
-        epoch: Union[int, None] = None,
+        epoch: Union[str, None] = None,
         timeout: int = 30000,
         limit: int = 100,
         offset: int = 0,
@@ -99,8 +99,8 @@ class Connector:
 
         You can specify:
             - the conditions if you want to filter the data
-            - the timeout of the request
-            - the epoch
+            - the timeout in ms of the request (delay to wait at most for the query to complete in Pivot)
+            - the epoch (optional category for the message)
             - the branch on which the request will be done
             - the limit and the offset for pagination
             - the returned types

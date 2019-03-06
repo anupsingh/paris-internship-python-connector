@@ -7,10 +7,10 @@ Table of Contents
   - [Methods](#methods)
   - [Types](#types)
 - [Queries](#queries)
+  - [Stores](#stores)
+  - [Store fields](#store-fields)
   - [MDX query](#mdx-query)
   - [Datastore query](#datastore-query)
-  - [Store references](#store-references)
-  - [Stores](#stores)
 
 ## How to define a connector
 
@@ -82,6 +82,26 @@ If a type fails on a data, there is a fallback on the str type.
 
 ## Queries
 
+### Stores
+
+Get the list of stores of a cube
+
+```py
+connector.stores()
+
+# ['store_1', 'store_2']
+```
+
+### Store fields
+
+Get the list of available fields of a specific store with their respective types
+
+```py
+connector.store_fields('store_1')
+
+# { 'field_1': <class 'int'>, 'field_2': <class 'str'> }
+```
+
 ### MDX query
 
 Basic usage:
@@ -102,12 +122,36 @@ print(query.dataframe)
 
 ### Datastore query
 
-ToDo
+Execute a query directly on the data store.
+Must specify the name of the data store and the fields that you want to retrieve.
 
-### Store references
+You can specify:
 
-ToDo
+- the conditions if you want to filter the data
+- the timeout of the request
+- the epoch
+- the branch on which the request will be done
+- the limit and the offset for pagination
+- the returned types
 
-### Stores
+Basic query:
 
-ToDo
+```py
+connector.store_query('store_1', ['field_1', 'field_2'])
+```
+
+With limit and offset:
+```py
+connector.store_query('store_1', ['field_1', 'field_2'], limit=250, offset=500)
+# Will omit the 500 first results and then retrieve the 250 following
+```
+
+With the branch:
+```py
+connector.store_query('store_1', ['field_1', 'field_2'], branch='fork_1')
+```
+
+With conditions:
+```py
+connector.store_query('store_1', ['field_1', 'field_2'], conditions={"year" : 2010, "currency" : "EUR"})
+```

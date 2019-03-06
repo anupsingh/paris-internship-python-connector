@@ -15,4 +15,7 @@ query2 = connector.store_query(
     "RussiaWorldCup2018", fields=["Team1Name", "Team2Name", "Team1Score"]
 )
 query3 = connector.store_fields("RussiaWorldCup2018")
+print(connector.stores())
+print(connector.store_fields("RussiaWorldCup2018"))
+print(connector.store_references("RussiaWorldCup2018"))
 # print(query.dataframe)
