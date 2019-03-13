@@ -10,6 +10,7 @@ Table of Contents
   - [Stores](#stores)
   - [Store fields](#store-fields)
   - [MDX query](#mdx-query)
+  - [MDX query builder](#mdx-query-builder)
   - [Datastore query](#datastore-query)
 
 ## How to define a connector
@@ -116,6 +117,24 @@ If you want to set a few custom types:
 
 ```py
 query = connector.mdx_query(MDX_QUERY_STRING, { "complex_column": complex })
+
+print(query.dataframe)
+```
+
+### MDX query builder
+
+In order to avoid writing MDX queries, you can use the mdx_builder:
+
+```py
+query = connector.mdx_builder(CUBE, [FIELD_1, FIELD_2, FIELD_3])
+
+print(query.dataframe)
+```
+
+If you want to set a few custom types:
+
+```py
+query = connector.mdx_builder(CUBE, [FIELD_1, FIELD_2, FIELD_3], { "complex_column": complex })
 
 print(query.dataframe)
 ```
