@@ -1,6 +1,6 @@
 from typing import Any, Callable, Union, List, Dict
 
-from .utils import AGGREGATION_FIELD
+from .mdx import AGGREGATION_FIELD
 
 Type = Union[Callable[[Any], Any], None]
 Types = Dict[str, Type]

@@ -7,13 +7,8 @@ import json
 
 from typing import Dict, List, Union
 
-from .utils import (
-    get_cubes_from_discovery,
-    convert_mdx_to_dataframe,
-    parse_headers,
-    detect_error,
-    convert_store_to_dataframe,
-)
+from .utils import get_cubes_from_discovery, parse_headers, detect_error, convert_store_to_dataframe
+from .mdx import convert_mdx_to_dataframe
 from .query import Query
 from .authentication import AuthenticationBuilder
 from .autotype import Types

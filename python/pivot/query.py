@@ -4,7 +4,7 @@ from typing import Callable
 
 
 from .autotype import auto_type_list, Types
-from .utils import AGGREGATION_FIELD
+from .mdx import AGGREGATION_FIELD
 
 
 class Query:
