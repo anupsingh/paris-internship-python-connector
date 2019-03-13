@@ -29,6 +29,32 @@ def get_cubes_from_discovery(dictionary):
     return cubes
 
 
+def cubes_leaves(cubes):
+    leaves = {}
+    for cube_name in cubes:
+        cube = cubes[cube_name]
+        duplicates = set()
+        cube_leaves = {}
+        for dimension_name in cube["dimensions"]:
+            dimension = cube["dimensions"][dimension_name]
+            for hierarchy_name in dimension["hierarchies"]:
+                hierarchy = dimension["hierarchies"][hierarchy_name]
+                for index_level, level in enumerate(hierarchy["levels"]):
+                    if level in duplicates:
+                        continue
+                    if level in cube_leaves:
+                        del cube_leaves[level]
+                        duplicates.add(level)
+                        continue
+                    cube_leaves[level] = [
+                        dimension_name,
+                        hierarchy_name,
+                        hierarchy["levels"][: index_level + 1],
+                    ]
+        leaves[cube_name] = cube_leaves
+    return leaves
+
+
 def find_length_positions(positions):
     initial_position = positions[0]
     for (index, position) in enumerate(positions[1:]):
