@@ -1,0 +1,13 @@
+{
+  "NanoPivotCube": {
+    "Team1Name": ["Games", "Games", ["ALL", "Team1Name"]],
+    "Team2Name": ["Games", "Games", ["ALL", "Team1Name", "Team2Name"]],
+    "Team1Score": ["Scores", "Team1Score", ["ALL", "Team1Score"]],
+    "Team2Score": ["Scores", "Team2Score", ["ALL", "Team2Score"]],
+    "GameDate": ["Date Time", "Date Time", ["ALL", "GameDate"]],
+    "GameTime": ["Date Time", "Date Time", ["ALL", "GameDate", "GameTime"]],
+    "Games": ["Measures", "Games"],
+    "Scores": ["Measures", "Scores"],
+    "Date Time": ["Measures", "Date Time"]
+  }
+}
