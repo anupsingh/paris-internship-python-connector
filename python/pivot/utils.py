@@ -51,6 +51,10 @@ def cubes_leaves(cubes):
                         hierarchy_name,
                         hierarchy["levels"][: index_level + 1],
                     ]
+        for measure in cube["dimensions"]:
+            if measure in cube_leaves:
+                continue
+            cube_leaves[measure] = ["MEASURE", measure]
         leaves[cube_name] = cube_leaves
     return leaves
 
