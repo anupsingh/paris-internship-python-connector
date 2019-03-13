@@ -1,16 +1,25 @@
 import pandas as pd
 from math import isnan
 
-from .utils import detect_measures_axe_id
 
 AGGREGATION_FIELD = "All"
+MEASURE_FIELD = "Measures"
+DIMENSION_FIELD = "Dimensions"
+
+
+def detect_measures_axe_id(dictionary):
+    for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
+        for (hierarchy_index, hierarchy) in enumerate(axe["hierarchies"]):
+            if hierarchy["hierarchy"] == MEASURE_FIELD:
+                return (axe_index, hierarchy_index)
+    return (-1, -1)
 
 
 def get_prefilled_label_from_headers(position, hierarchies, cube):
     global AGGREGATION_FIELD
     label_element = {}
     for (label, hierarchy) in zip(position, hierarchies):
-        if hierarchy["hierarchy"] != "Measures":
+        if hierarchy["hierarchy"] != MEASURE_FIELD:
             if len(label["namePath"]) == 1:
                 label_element[hierarchy["hierarchy"]] = AGGREGATION_FIELD
             else:
@@ -102,3 +111,37 @@ def convert_mdx_to_dataframe(dictionary, cubes):
 
     data = [hashes_rows[hash] for hash in hashes_rows]
     return pd.DataFrame(data=data)
+
+
+def builder(fields, cube_leaves):
+    query_json = {}
+    for field in fields:
+        if field not in cube_leaves:
+            raise Exception(
+                f"{field} isn't a valid field.\nThe availables fields are: {', '.join(cube_leaves.keys())}"
+            )
+        path_to_field = cube_leaves[field]
+        print(path_to_field)
+
+        if path_to_field[0] == MEASURE_FIELD:
+            if MEASURE_FIELD not in query_json:
+                query_json[MEASURE_FIELD] = []
+            query_json[MEASURE_FIELD].append(path_to_field[1])
+        else:
+            prev = query_json
+            for (index, path) in enumerate(path_to_field[:-1]):
+                if path not in prev:
+                    if index == len(path_to_field) - 2:
+                        prev[path] = []
+                    else:
+                        prev[path] = {}
+                prev = prev[path]
+            last_path = path_to_field[-1]
+            previous_length = len(prev)
+            if previous_length < len(last_path):
+                print("prev", prev)
+                print("last_path", last_path)
+                for i in range(len(last_path) - previous_length):
+                    prev.append(last_path[i + previous_length])
+    print(query_json)
+    return ""

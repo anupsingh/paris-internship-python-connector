@@ -1,6 +1,8 @@
 import pandas as pd
 from math import isnan
 
+from .mdx import MEASURE_FIELD, DIMENSION_FIELD
+
 
 def get_cubes_from_discovery(dictionary):
     cubes = {}
@@ -47,14 +49,15 @@ def cubes_leaves(cubes):
                         duplicates.add(level)
                         continue
                     cube_leaves[level] = [
+                        DIMENSION_FIELD,
                         dimension_name,
                         hierarchy_name,
                         hierarchy["levels"][: index_level + 1],
                     ]
-        for measure in cube["dimensions"]:
+        for measure in cube["measures"]:
             if measure in cube_leaves:
                 continue
-            cube_leaves[measure] = ["MEASURE", measure]
+            cube_leaves[measure] = [MEASURE_FIELD, measure]
         leaves[cube_name] = cube_leaves
     return leaves
 
@@ -64,14 +67,6 @@ def find_length_positions(positions):
     for (index, position) in enumerate(positions[1:]):
         if position[-1] == initial_position[-1]:
             return index + 1
-
-
-def detect_measures_axe_id(dictionary):
-    for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
-        for (hierarchy_index, hierarchy) in enumerate(axe["hierarchies"]):
-            if hierarchy["hierarchy"] == "Measures":
-                return (axe_index, hierarchy_index)
-    return (-1, -1)
 
 
 def convert_store_to_dataframe(headers, rows):

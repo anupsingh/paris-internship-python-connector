@@ -14,7 +14,7 @@ from .utils import (
     convert_store_to_dataframe,
     cubes_leaves,
 )
-from .mdx import convert_mdx_to_dataframe
+from .mdx import convert_mdx_to_dataframe, builder
 from .query import Query
 from .authentication import AuthenticationBuilder
 from .autotype import Types
@@ -45,6 +45,7 @@ class Connector:
 
         self.cubes = get_cubes_from_discovery(response)
         self.cubes_leaves = cubes_leaves(self.cubes)
+        # print(self.cubes_leaves)
 
     def stores(self) -> Types:
         """
@@ -69,6 +70,13 @@ class Connector:
         response = self.get(f"pivot/rest/v4/datastore/discovery/references/{store}")
         detect_error(response)
         return response["data"]
+
+    def mdx_builder(self, cube_name: str, fields: List[str], types: Types = {}):
+        if cube_name not in self.cubes_leaves:
+            raise Exception(
+                f"{cube_name} isn't a valid cube.\nThe available cubes are: {', '.join(self.cubes_leaves.keys())}"
+            )
+        return self.mdx_query(builder(fields, self.cubes_leaves[cube_name]), types)
 
     def mdx_query(self, mdx_request: str, types: Types = {}) -> Query:
         """
