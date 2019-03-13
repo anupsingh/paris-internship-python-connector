@@ -76,7 +76,7 @@ class Connector:
             raise Exception(
                 f"{cube_name} isn't a valid cube.\nThe available cubes are: {', '.join(self.cubes_leaves.keys())}"
             )
-        return self.mdx_query(builder(fields, self.cubes_leaves[cube_name]), types)
+        return self.mdx_query(builder(cube_name, fields, self.cubes_leaves[cube_name]), types)
 
     def mdx_query(self, mdx_request: str, types: Types = {}) -> Query:
         """

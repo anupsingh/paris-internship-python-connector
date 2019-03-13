@@ -7,6 +7,13 @@ MEASURE_FIELD = "Measures"
 DIMENSION_FIELD = "Dimensions"
 
 
+def flatten(l):
+    flat_l = []
+    for ll in l:
+        flat_l.extend(ll)
+    return flat_l
+
+
 def detect_measures_axe_id(dictionary):
     for (axe_index, axe) in enumerate(dictionary["data"]["axes"]):
         for (hierarchy_index, hierarchy) in enumerate(axe["hierarchies"]):
@@ -113,7 +120,14 @@ def convert_mdx_to_dataframe(dictionary, cubes):
     return pd.DataFrame(data=data)
 
 
-def builder(fields, cube_leaves):
+def parse_path_tree(name, path_tree):
+    return [
+        "[" + "].[".join([name, sub_title, path_tree[sub_title][-1]]) + "].Members"
+        for sub_title in path_tree
+    ]
+
+
+def builder(cube_name, fields, cube_leaves):
     query_json = {}
     for field in fields:
         if field not in cube_leaves:
@@ -121,7 +135,6 @@ def builder(fields, cube_leaves):
                 f"{field} isn't a valid field.\nThe availables fields are: {', '.join(cube_leaves.keys())}"
             )
         path_to_field = cube_leaves[field]
-        print(path_to_field)
 
         if path_to_field[0] == MEASURE_FIELD:
             if MEASURE_FIELD not in query_json:
@@ -139,9 +152,44 @@ def builder(fields, cube_leaves):
             last_path = path_to_field[-1]
             previous_length = len(prev)
             if previous_length < len(last_path):
-                print("prev", prev)
-                print("last_path", last_path)
                 for i in range(len(last_path) - previous_length):
                     prev.append(last_path[i + previous_length])
-    print(query_json)
-    return ""
+    """
+    query_json example:
+    {
+        "Measures": ["Total scores"],
+        "Dimensions": {
+            "Games": {
+                "Games": ["ALL", "Team1Name", "Team2Name"]
+            }
+        }
+    }
+    """
+
+    if len(query_json[DIMENSION_FIELD]) == 0:
+        raise Exception("Must specify field")
+
+    dimension_names = list(query_json[DIMENSION_FIELD].keys())
+
+    rows = parse_path_tree(dimension_names[0], query_json[DIMENSION_FIELD][dimension_names[0]])
+    columns = flatten(
+        [
+            parse_path_tree(column_name, query_json[DIMENSION_FIELD][column_name])
+            for column_name in dimension_names[1:]
+        ]
+    )
+
+    for measure in query_json[MEASURE_FIELD]:
+        columns.append(f"[{MEASURE_FIELD}].[{measure}]")
+
+    format = (
+        lambda l: f'Crossjoin({",".join([f"Hierarchize({x})" for x in l])})' if len(l) > 1 else l[0]
+    )
+
+    return f"""
+    SELECT
+        NON EMPTY {format(columns)} ON COLUMNS,
+        NON EMPTY {format(rows)} ON ROWS
+    FROM [{cube_name}]
+    CELL PROPERTIES VALUE, FORMATTED_VALUE
+    """

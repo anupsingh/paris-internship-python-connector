@@ -15,6 +15,9 @@ query2 = connector.store_query(
     "RussiaWorldCup2018", fields=["Team1Name", "Team2Name", "Team1Score"]
 )
 query3 = connector.store_fields("RussiaWorldCup2018")
+query4 = connector.mdx_builder(
+    "NanoPivotCube", ["Team2Name", "Team1Score", "Team2Score", "Total scores"]
+)
 print(connector.stores())
 print(connector.store_fields("RussiaWorldCup2018"))
 print(connector.store_references("RussiaWorldCup2018"))
