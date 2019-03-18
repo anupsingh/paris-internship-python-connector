@@ -100,9 +100,10 @@ public class NanoPivotSourceConfig {
 		final char separator = env.getProperty("separator", ",").charAt(0);
 		final String regexSeparatorForString = "\\" + separator;
 		final String fileName = env.getProperty("source.file");
-		final List<String> columns = extractCVSFileColumns(
-				getClass().getClassLoader().getResource(fileName).getFile(),
-				regexSeparatorForString);
+		// final List<String> columns = extractCVSFileColumns(
+		// 		getClass().getClassLoader().getResource(fileName).getFile(),
+		// 		regexSeparatorForString);
+		final List<String> columns = Arrays.asList("gameId", "Team1Name", "Team2Name", "GameDate", "GameTime", "Team1Score", "Team2Score");
 
 		final ICSVTopic<Path> wc2018Topic = csvTopicFactory.createTopic(
 				WC2018_TOPIC,

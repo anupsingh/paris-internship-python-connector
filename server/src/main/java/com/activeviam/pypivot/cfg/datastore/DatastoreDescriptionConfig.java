@@ -7,6 +7,7 @@
 package com.activeviam.pypivot.cfg.datastore;
 
 import static com.qfs.literal.ILiteralType.INT;
+import static com.qfs.literal.ILiteralType.LONG;
 import static com.qfs.literal.ILiteralType.STRING;
 
 import java.util.Collection;
@@ -53,7 +54,7 @@ public class DatastoreDescriptionConfig implements IDatastoreDescriptionConfig {
 	@Bean
 	public IStoreDescription russia2018StoreDescription() {
 		return new StoreDescriptionBuilder().withStoreName(STORE_RUSSIA2018)
-				.withField(RUSSIA2018_GAME_ID, INT).asKeyField()
+				.withField(RUSSIA2018_GAME_ID, LONG).asKeyField()
 				.withField(RUSSIA2018_TEAM1_NAME, STRING)
 				.withField(RUSSIA2018_TEAM2_NAME, STRING)
 				.withField(RUSSIA2018_GAME_DATE, DATE_FORMAT)
